@@ -1,0 +1,9 @@
+{
+  "name": "Atom Echo Disable Speaker",
+  "version": "1.0",
+  "author": "Cascade",
+  "github": "https://github.com/Aircoookie/WLED",
+  "description": "Explicitly disables the speaker on M5Stack Atom Echo by configuring the speaker pins as inputs with pull-down resistors",
+  "requires": ["WLED"],
+  "id": 9999
+}

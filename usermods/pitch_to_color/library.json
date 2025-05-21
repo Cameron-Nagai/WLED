@@ -1,0 +1,17 @@
+{
+  "name": "Pitch to Color",
+  "keywords": "wled, usermod, audio, pitch, note, color",
+  "description": "Changes LED colors based on detected pitch from the microphone",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Aircoookie/WLED"
+  },
+  "authors": [
+    {
+      "name": "Cascade"
+    }
+  ],
+  "version": "1.0.0",
+  "frameworks": "arduino",
+  "platforms": "espressif32"
+}

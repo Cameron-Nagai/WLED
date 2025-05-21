@@ -9048,6 +9048,115 @@ uint16_t mode_particlegalaxy(void) {
 }
 static const char _data_FX_MODE_PARTICLEGALAXY[] PROGMEM = "PS Galaxy@!,!,Size,,Color,,Starfield,Trace;;!;2;pal=59,sx=80,c1=2,c3=4";
 
+// Define note frequency ranges (in Hz) based on the chart
+// F4 to F#5 range
+#define NOTE_F4_LOW    349.0f  // F4 (~349.2 Hz)
+#define NOTE_F4_HIGH   360.0f  // between F4 and F#4
+
+#define NOTE_F_SHARP4_LOW  360.0f  // F#4 (~370.0 Hz)
+#define NOTE_F_SHARP4_HIGH 381.0f  // between F#4 and G4
+
+#define NOTE_G4_LOW   381.0f  // G4 (~392.0 Hz)
+#define NOTE_G4_HIGH  403.0f  // between G4 and G#4/Ab4
+
+#define NOTE_A_FLAT4_LOW  403.0f  // Ab4 (~415.3 Hz)
+#define NOTE_A_FLAT4_HIGH 427.0f  // between Ab4 and A4
+
+#define NOTE_A4_LOW   427.0f  // A4 (~440.0 Hz)
+#define NOTE_A4_HIGH  453.0f  // between A4 and A#4/Bb4
+
+#define NOTE_B_FLAT4_LOW  453.0f  // Bb4 (~466.2 Hz)
+#define NOTE_B_FLAT4_HIGH 480.0f  // between Bb4 and B4
+
+#define NOTE_B4_LOW   480.0f  // B4 (~493.9 Hz)
+#define NOTE_B4_HIGH  508.0f  // between B4 and C5
+
+#define NOTE_C5_LOW   508.0f  // C5 (~523.2 Hz)
+#define NOTE_C5_HIGH  538.0f  // between C5 and C#5/Db5
+
+#define NOTE_D_FLAT5_LOW  538.0f  // Db5 (~554.4 Hz)
+#define NOTE_D_FLAT5_HIGH 570.0f  // between Db5 and D5
+
+#define NOTE_D5_LOW   570.0f  // D5 (~587.3 Hz)
+#define NOTE_D5_HIGH  604.0f  // between D5 and D#5/Eb5
+
+#define NOTE_E_FLAT5_LOW  604.0f  // Eb5 (~622.2 Hz)
+#define NOTE_E_FLAT5_HIGH 638.0f  // between Eb5 and E5
+
+#define NOTE_E5_LOW   638.0f  // E5 (~659.3 Hz)
+#define NOTE_E5_HIGH  676.0f  // between E5 and F5
+
+#define NOTE_F5_LOW   676.0f  // F5 (~698.5 Hz)
+#define NOTE_F5_HIGH  733.0f  // between F5 and F#5
+
+#define NOTE_F_SHARP5_LOW  733.0f  // F#5 (~740.0 Hz)
+#define NOTE_F_SHARP5_HIGH 760.0f  // upper bound
+
+// Define colors for each note based on the chart
+#define COLOR_F4        0x820000  // Dark Red (#82/00/00)
+#define COLOR_F_SHARP4  0x740000  // Dark Red (#74/00/00)
+#define COLOR_G4        0xB30000  // Red (#b3/00/00)
+#define COLOR_A_FLAT4   0xEE0000  // Bright Red (#ee/00/00)
+#define COLOR_A4        0xFF6300  // Orange (#ff/63/00)
+#define COLOR_B_FLAT4   0xFF8C00  // Yellow-Orange (#ff/8c/00)
+#define COLOR_B4        0x99FF00  // Yellow-Green (#99/ff/00)
+#define COLOR_C5        0x00FF00  // Green (#00/ff/00)
+#define COLOR_D_FLAT5   0x00FFFF  // Cyan (#00/ff/ff)
+#define COLOR_D5        0x0080FF  // Light Blue (#00/80/ff)
+#define COLOR_E_FLAT5   0x0000FF  // Blue (#00/00/ff)
+#define COLOR_E5        0x8000FF  // Purple (#80/00/ff)
+#define COLOR_F5        0xFF00FF  // Magenta (#ff/00/ff)
+#define COLOR_F_SHARP5  0xFF0080  // Pink (#ff/00/80)
+
+// Get the color for a specific frequency
+uint32_t getColorForFrequency(float frequency) {
+  // Check which note range the frequency falls into based on the chart
+  if (frequency >= NOTE_F4_LOW && frequency < NOTE_F4_HIGH) return COLOR_F4;
+  if (frequency >= NOTE_F_SHARP4_LOW && frequency < NOTE_F_SHARP4_HIGH) return COLOR_F_SHARP4;
+  if (frequency >= NOTE_G4_LOW && frequency < NOTE_G4_HIGH) return COLOR_G4;
+  if (frequency >= NOTE_A_FLAT4_LOW && frequency < NOTE_A_FLAT4_HIGH) return COLOR_A_FLAT4;
+  if (frequency >= NOTE_A4_LOW && frequency < NOTE_A4_HIGH) return COLOR_A4;
+  if (frequency >= NOTE_B_FLAT4_LOW && frequency < NOTE_B_FLAT4_HIGH) return COLOR_B_FLAT4;
+  if (frequency >= NOTE_B4_LOW && frequency < NOTE_B4_HIGH) return COLOR_B4;
+  if (frequency >= NOTE_C5_LOW && frequency < NOTE_C5_HIGH) return COLOR_C5;
+  if (frequency >= NOTE_D_FLAT5_LOW && frequency < NOTE_D_FLAT5_HIGH) return COLOR_D_FLAT5;
+  if (frequency >= NOTE_D5_LOW && frequency < NOTE_D5_HIGH) return COLOR_D5;
+  if (frequency >= NOTE_E_FLAT5_LOW && frequency < NOTE_E_FLAT5_HIGH) return COLOR_E_FLAT5;
+  if (frequency >= NOTE_E5_LOW && frequency < NOTE_E5_HIGH) return COLOR_E5;
+  if (frequency >= NOTE_F5_LOW && frequency < NOTE_F5_HIGH) return COLOR_F5;
+  if (frequency >= NOTE_F_SHARP5_LOW && frequency < NOTE_F_SHARP5_HIGH) return COLOR_F_SHARP5;
+  
+  // If frequency is outside our defined ranges, return white
+  return 0xFFFFFF;
+}
+
+// Pitch to Color effect - changes all LEDs to a color based on the detected pitch
+uint16_t mode_pitch_to_color(void) {
+  // Get audio data
+  um_data_t *um_data = getAudioData();
+  
+  // Get the frequency and magnitude from audio data
+  float frequency = *(float*)um_data->u_data[4]; // FFT_MajorPeak
+  float magnitude = *(float*)um_data->u_data[5]; // FFT_Magnitude
+  
+  // Only change color if we have a strong enough signal
+  if (magnitude > 10.0f) {
+    // Get the color for the detected frequency
+    uint32_t color = getColorForFrequency(frequency);
+    
+    // Fill the entire segment with this color
+    SEGMENT.fill(color);
+    
+    // Store the detected frequency and magnitude in segment variables for display
+    SEGENV.aux0 = (uint16_t)(frequency * 10); // Store frequency * 10 to preserve decimal
+    SEGENV.aux1 = (uint16_t)(magnitude * 10); // Store magnitude * 10 to preserve decimal
+  }
+  
+  return 30; // Update every 30ms for responsive color changes
+}
+
+static const char _data_FX_MODE_PITCH_TO_COLOR[] PROGMEM = "Pitch to Color@Sensitivity,Squelch;;!;1;ix=128";
+
 #endif //WLED_DISABLE_PARTICLESYSTEM2D
 #endif // WLED_DISABLE_2D
 
@@ -10748,6 +10857,7 @@ void WS2812FX::setupEffectData() {
   addEffect(FX_MODE_PARTICLEGHOSTRIDER, &mode_particleghostrider, _data_FX_MODE_PARTICLEGHOSTRIDER);
   addEffect(FX_MODE_PARTICLEBLOBS, &mode_particleblobs, _data_FX_MODE_PARTICLEBLOBS);
   addEffect(FX_MODE_PARTICLEGALAXY, &mode_particlegalaxy, _data_FX_MODE_PARTICLEGALAXY);
+  addEffect(FX_MODE_PITCH_TO_COLOR, &mode_pitch_to_color, _data_FX_MODE_PITCH_TO_COLOR);
 #endif // WLED_DISABLE_PARTICLESYSTEM2D
 #endif // WLED_DISABLE_2D
 

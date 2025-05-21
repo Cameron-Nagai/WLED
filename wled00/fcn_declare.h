@@ -622,4 +622,8 @@ void sendDataWs(AsyncWebSocketClient * client = nullptr);
 void XML_response(Print& dest);
 void getSettingsJS(byte subPage, Print& dest);
 
+//FX.cpp
+uint32_t getColorForFrequency(float frequency);
+uint16_t mode_pitch_to_color(void);
+
 #endif

@@ -1,0 +1,17 @@
+{
+  "name": "Atom Echo Disable Speaker",
+  "keywords": "wled, usermod, m5stack, atom echo, speaker",
+  "description": "Explicitly disables the speaker on M5Stack Atom Echo",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Aircoookie/WLED"
+  },
+  "authors": [
+    {
+      "name": "Cascade"
+    }
+  ],
+  "version": "1.0.0",
+  "frameworks": "arduino",
+  "platforms": "espressif32"
+}
